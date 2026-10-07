@@ -16,8 +16,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# Ścieżka do logo.png
-LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo.png")
+# Ścieżka do logo3.svg
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo3.svg")
 
 # Klucze API
 YOUTUBE_API_KEY = st.secrets["YOUTUBE_API_KEY"]
@@ -101,12 +101,24 @@ def render_iframe(src, width=315, height=560):
         st.components.v1.iframe(src, width=width, height=height, scrolling=False)
 
 
-def render_stretched_image(image_path):
-    """Dopasowuje logo do pełnej szerokości paska bocznego."""
+def render_clickable_logo(image_path, target_url="http://fabryka.tech/"):
+    """Renderuje klikalne logo SVG prowadzące do podanego adresu URL."""
     try:
-        st.image(image_path, width="stretch")
-    except TypeError:
-        st.image(image_path, use_container_width=True)
+        import base64
+        with open(image_path, "rb") as f:
+            encoded_svg = base64.b64encode(f.read()).decode("utf-8")
+        st.markdown(
+            f'<a href="{target_url}" target="_blank">'
+            f'<img src="data:image/svg+xml;base64,{encoded_svg}" style="width: 100%; display: block;" />'
+            f'</a>',
+            unsafe_allow_html=True
+        )
+    except Exception:
+        # Fallback na st.image z linkiem
+        try:
+            st.image(image_path, width="stretch")
+        except TypeError:
+            st.image(image_path, use_container_width=True)
 
 
 def get_youtube_service():
@@ -281,7 +293,7 @@ st.caption("Losowe shorty z polskiej bazy YouTube")
 # Panel boczny
 with st.sidebar:
     if os.path.exists(LOGO_PATH):
-        render_stretched_image(LOGO_PATH)
+        render_clickable_logo(LOGO_PATH, target_url="http://fabryka.tech/")
     
     st.header("⚙ Ustawienia skanera")
     
@@ -307,6 +319,10 @@ with st.sidebar:
     )
     
     run_btn = st.button("🎲 Losuj Shorty", type="primary")
+
+    st.markdown("---")
+    st.caption("Masz opinie, uwagi, komentarze?")
+    st.link_button("Formularz Kontaktowy", "https://fabryka.tech/kontakt", use_container_width=True)
 
 if run_btn:
     youtube = get_youtube_service()
